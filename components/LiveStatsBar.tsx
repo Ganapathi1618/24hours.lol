@@ -53,6 +53,10 @@ export function LiveStatsBar() {
     };
   }, []);
 
+  // When Datafast is unreachable the whole row disappears — no error text, and
+  // never a guessed number.
+  if (state.status === 'error') return null;
+
   return (
     <div className="w-full border-b border-white/10 bg-white/[0.03]">
       <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-4 px-5 py-3 sm:px-8">
@@ -79,12 +83,6 @@ export function LiveStatsBar() {
             </span>
             <Stat value={compact(state.stats.pageviews)} label="views 30d" />
           </div>
-        )}
-
-        {state.status === 'error' && (
-          <span className="flex-1 text-center font-mono text-xs text-white/30">
-            Live stats unavailable
-          </span>
         )}
 
         {state.status === 'ready' && state.stats.shareUrl ? (

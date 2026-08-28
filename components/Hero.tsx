@@ -60,24 +60,34 @@ export function Hero({ now, currentHour, slot, onBid }: Props) {
           </article>
         ) : (
           <div className="w-full max-w-md text-center">
-            <div className="rounded border border-dashed border-white/15 px-6 py-8">
-              <p className="text-lg font-semibold">This hour is unclaimed</p>
-              <p className="mt-1.5 text-sm text-white/40">
-                One brand, one hour, front and centre.
-              </p>
+            {/* Ghost card: shows an advertiser exactly what they would be buying. */}
+            <div className="flex items-center gap-4 rounded border border-dashed border-white/20 px-5 py-6 text-left">
+              <span
+                aria-hidden
+                className="flex h-12 w-12 shrink-0 items-center justify-center rounded border border-dashed border-white/20 font-mono text-lg text-white/30"
+              >
+                S
+              </span>
+              <span>
+                <span className="block text-lg font-bold">Your startup here</span>
+                <span className="mt-0.5 block text-sm text-white/40">
+                  one-line pitch + link for 60 minutes
+                </span>
+              </span>
             </div>
+
             <button
               type="button"
               onClick={() => onBid(currentHour)}
               className="mt-4 inline-flex w-full items-center justify-center rounded bg-accent px-6 py-3.5 font-medium text-white transition-opacity hover:opacity-90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
-              Own {range} →
+              Claim {range}
+              {slot && ` · from ${formatMoney(slot.min_bid)}`}
             </button>
-            {slot && (
-              <p className="mt-2.5 font-mono text-xs text-white/40">
-                from {formatMoney(slot.min_bid)}
-              </p>
-            )}
+
+            <p className="mt-2.5 text-xs text-white/40">
+              Highest bid keeps this spot every day until outbid
+            </p>
           </div>
         )}
       </div>

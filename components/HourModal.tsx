@@ -99,21 +99,28 @@ export function HourModal({ slot, onClose }: Props) {
   const inputClass =
     'mt-1.5 w-full rounded border border-neutral-300 px-3 py-2.5 text-base outline-none transition-colors focus:border-accent';
 
+  // Stacking is explicit so nothing can sit over the form fields: the wrapper
+  // itself is inert (pointer-events-none) and only the backdrop and the dialog
+  // opt back in. The dialog also sits on its own layer above the backdrop.
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end justify-center sm:items-center"
+      className="pointer-events-none fixed inset-0 z-[9999] flex items-end justify-center sm:items-center"
       role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose();
-      }}
     >
-      <div className="absolute inset-0 animate-fade-in bg-black/50" aria-hidden />
+      {/* The backdrop owns the click-outside-to-close behaviour. */}
+      <div
+        className="pointer-events-auto absolute inset-0 z-0 animate-fade-in bg-black/50"
+        aria-hidden
+        onMouseDown={onClose}
+      />
 
       <div
         role="dialog"
         aria-modal="true"
         aria-labelledby={`${fieldId}-title`}
-        className="relative max-h-[92svh] w-full animate-slide-up overflow-y-auto rounded-t-lg bg-white p-5 sm:max-w-md sm:animate-fade-in sm:rounded-lg sm:p-6"
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
+        className="pointer-events-auto relative z-10 max-h-[92svh] w-full animate-slide-up overflow-y-auto rounded-t-lg bg-white p-5 sm:max-w-md sm:animate-fade-in sm:rounded-lg sm:p-6"
       >
         <div className="mb-1 flex items-start justify-between gap-4">
           <div>

@@ -64,7 +64,9 @@ export async function fetchDatafastStats(): Promise<Omit<StatsResponse, 'shareUr
 
   const websiteId = encodeURIComponent(env.datafastWebsiteId);
   const now = new Date();
-  const endAt = isoDate(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+  // endAt is today, never tomorrow — a future end date can be rejected outright,
+  // which is one way the overview call comes back empty.
+  const endAt = isoDate(now);
   const startAt = isoDate(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
 
   const [realtime, overview] = await Promise.all([
@@ -215,7 +217,9 @@ export async function fetchAudienceInsights(): Promise<AudienceInsights | null> 
 
   const websiteId = encodeURIComponent(env.datafastWebsiteId);
   const now = new Date();
-  const endAt = isoDate(new Date(now.getTime() + 24 * 60 * 60 * 1000));
+  // endAt is today, never tomorrow — a future end date can be rejected outright,
+  // which is one way the overview call comes back empty.
+  const endAt = isoDate(now);
   const startAt = isoDate(new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000));
 
   const [realtime, overview] = await Promise.all([
