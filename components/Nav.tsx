@@ -72,13 +72,24 @@ export function Nav({ onBid }: Props) {
       </a>
 
       {stats && (
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-2 py-1">
+        <div className="flex items-center rounded-full border border-white/15 bg-white/[0.08] px-2 py-1 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-md sm:px-3 sm:py-1.5">
+          <span className="inline-flex items-center gap-1.5 pr-2 sm:pr-3">
             <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            <span className="font-mono text-[11px] text-emerald-400">{stats.live}</span>
+            <span className="font-mono text-[11px] font-semibold text-white">{stats.live}</span>
+            <span className="hidden text-[10px] uppercase tracking-wider text-white/50 sm:inline">
+              live
+            </span>
           </span>
-          <span className="hidden truncate text-[11px] text-white/40 sm:inline">
-            {stats.visitors} visitors · {stats.pageviews} views
+          <span className="hidden h-3 w-px bg-white/20 sm:block" />
+          <span className="hidden items-center gap-3 pl-3 font-mono text-[11px] text-white sm:flex">
+            <span>
+              <span className="font-semibold">{stats.visitors}</span>
+              <span className="ml-1 text-white/45">visitors</span>
+            </span>
+            <span>
+              <span className="font-semibold">{stats.pageviews}</span>
+              <span className="ml-1 text-white/45">views</span>
+            </span>
           </span>
         </div>
       )}
