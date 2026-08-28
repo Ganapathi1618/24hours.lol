@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { env } from './env';
-import { formatHourRange, formatMoney } from './hours';
+import { formatHour12, formatHourRange, formatMoney } from './hours';
 
 /**
  * Resend is optional. Every helper here is best-effort: a mail failure must
@@ -48,15 +48,18 @@ export async function sendWinnerEmail(
   hourNumber: number,
   amount: number,
   brandName: string,
+  campaignDays: number,
 ): Promise<void> {
+  const short = formatHour12(hourNumber);
   const slot = formatHourRange(hourNumber);
   await send(
     to,
-    `You own ${slot} UTC on 24hrs.lol`,
+    `🏆 You own ${short} — 24hrs.lol`,
     shell(`
-      <h2 style="margin:0 0 8px">${escapeHtml(brandName)} owns ${slot} UTC.</h2>
-      <p>Your bid of <strong>${formatMoney(amount)}</strong> is now the standing bid for that hour.</p>
-      <p>Your brand is live on the homepage every day during that slot until someone outbids you.</p>
+      <h2 style="margin:0 0 8px">${escapeHtml(brandName)} owns ${short}.</h2>
+      <p>Your bid of <strong>${formatMoney(amount)}</strong> won ${slot} UTC.</p>
+      <p>Your brand is featured on the homepage clock during that hour, every day, for the
+      next ${campaignDays} days — or until someone outbids you.</p>
       <p><a href="${env.siteUrl}" style="color:#2563eb">See it live →</a></p>
     `),
   );
@@ -67,15 +70,15 @@ export async function sendOutbidEmail(
   hourNumber: number,
   newAmount: number,
 ): Promise<void> {
-  const slot = formatHourRange(hourNumber);
+  const short = formatHour12(hourNumber);
   await send(
     to,
-    `You were outbid on ${slot} UTC`,
+    `You've been outbid on ${short} — 24hrs.lol`,
     shell(`
-      <h2 style="margin:0 0 8px">Someone just took ${slot} UTC.</h2>
-      <p>The standing bid is now <strong>${formatMoney(newAmount)}</strong>.</p>
-      <p>You can take the hour back for ${formatMoney(newAmount + 1)}.</p>
-      <p><a href="${env.siteUrl}" style="color:#2563eb">Bid again →</a></p>
+      <h2 style="margin:0 0 8px">Someone just took ${short}.</h2>
+      <p>Someone bid <strong>${formatMoney(newAmount)}</strong> for ${short}.
+      Bid ${formatMoney(newAmount + 1)} to reclaim it.</p>
+      <p><a href="${env.siteUrl}" style="color:#2563eb">Reclaim ${escapeHtml(short)} →</a></p>
     `),
   );
 }

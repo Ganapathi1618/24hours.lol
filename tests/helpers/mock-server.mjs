@@ -7,9 +7,9 @@ import crypto from 'node:crypto';
 
 const db = {
   hours: [
-    { id: 'h-9', hour_number: 9, current_bid: '50.00', bid_count: 0, brand_name: null, brand_tagline: null, brand_url: null, brand_logo_url: null, winner_email: null, status: 'open', created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-01T00:00:00Z' },
-    { id: 'h-12', hour_number: 12, current_bid: '40.00', bid_count: 0, brand_name: null, brand_tagline: null, brand_url: null, brand_logo_url: null, winner_email: null, status: 'open', created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-01T00:00:00Z' },
-    { id: 'h-0', hour_number: 0, current_bid: '10.00', bid_count: 0, brand_name: null, brand_tagline: null, brand_url: null, brand_logo_url: null, winner_email: null, status: 'open', created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-01T00:00:00Z' },
+    { id: 'h-9', hour_number: 9, current_bid: '50.00', bid_count: 0, brand_name: null, brand_tagline: null, brand_url: null, brand_logo_url: null, winner_email: null, status: 'open', auction_end_time: null, campaign_days: 30, created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-01T00:00:00Z' },
+    { id: 'h-12', hour_number: 12, current_bid: '40.00', bid_count: 0, brand_name: null, brand_tagline: null, brand_url: null, brand_logo_url: null, winner_email: null, status: 'open', auction_end_time: null, campaign_days: 30, created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-01T00:00:00Z' },
+    { id: 'h-0', hour_number: 0, current_bid: '10.00', bid_count: 0, brand_name: null, brand_tagline: null, brand_url: null, brand_logo_url: null, winner_email: null, status: 'open', auction_end_time: null, campaign_days: 30, created_at: '2026-08-01T00:00:00Z', updated_at: '2026-08-01T00:00:00Z' },
   ],
   bids: [],
 };
@@ -65,6 +65,26 @@ const server = http.createServer((req, res) => {
     if (url.pathname === '/refunds' && req.method === 'POST') {
       server.emit('dodo:refund', body);
       return send(res, 200, { refund_id: nextId('ref'), status: 'succeeded' });
+    }
+
+    // ---- Datafast ----
+    if (url.pathname === '/analytics/realtime') {
+      return send(res, 200, { live: 12 });
+    }
+    if (url.pathname === '/analytics/overview') {
+      return send(res, 200, {
+        visitors: 48210,
+        pageviews: 91500,
+        countries: [
+          { name: 'United States', visitors: 21000 },
+          { name: 'India', visitors: 9400 },
+          { name: 'Germany', visitors: 4100 },
+        ],
+        hourly: Array.from({ length: 24 }, (_, hour) => ({
+          hour,
+          pageviews: 2000 + Math.round(Math.sin(hour / 3) * 1500 + hour * 40),
+        })),
+      });
     }
 
     // ---- PostgREST ----

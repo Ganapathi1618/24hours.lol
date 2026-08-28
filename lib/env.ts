@@ -31,7 +31,7 @@ export const env = {
 } as const;
 
 export const DODO_API_BASE = optional('DODO_API_BASE') ?? 'https://live.dodopayments.com';
-export const DATAFAST_API_BASE = 'https://datafa.st/api/v1';
+export const DATAFAST_API_BASE = optional('DATAFAST_API_BASE') ?? 'https://datafa.st/api/v1';
 
 /** True when the privileged Supabase credentials are present. */
 export function hasAdminSupabase(): boolean {

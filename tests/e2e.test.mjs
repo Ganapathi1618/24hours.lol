@@ -290,11 +290,29 @@ async function main() {
 
   console.log('\n— Stats —');
 
-  await check('stats fails closed when Datafast is unreachable', async () => {
+  await check('stats returns real Datafast numbers', async () => {
     const response = await fetch(`${BASE}/api/stats`);
-    assert.equal(response.status, 503);
+    assert.equal(response.status, 200);
     const data = await response.json();
-    assert.ok(data.error, 'no invented numbers');
+    assert.equal(data.live, 12);
+    assert.equal(data.visitors, 48210);
+    assert.equal(data.pageviews, 91500);
+  });
+
+  console.log('\n— Analytics —');
+
+  await check('parses Datafast payloads into audience insights', async () => {
+    const response = await fetch(`${BASE}/api/analytics`);
+    assert.equal(response.status, 200);
+    const data = await response.json();
+    assert.equal(data.live, 12);
+    assert.equal(data.monthlyVisitors, 48210);
+    assert.equal(data.monthlyPageviews, 91500);
+    assert.equal(data.dailyAveragePageviews, Math.round(91500 / 30));
+    assert.equal(data.topCountries[0].name, 'United States', 'countries sorted by visitors');
+    assert.equal(data.topCountries.length, 3);
+    assert.equal(data.hourly.length, 24, 'every UTC hour is bucketed');
+    assert.ok(data.hourly.every((p) => p.hour >= 0 && p.hour <= 23));
   });
 
   console.log('\n— Page —');
@@ -303,7 +321,8 @@ async function main() {
     const response = await fetch(BASE);
     assert.equal(response.status, 200);
     const html = await response.text();
-    assert.ok(html.includes('Own an hour. Own the attention.'), 'headline present');
+    assert.ok(html.includes('THE INTERNET HAS 24 HOURS.'), 'headline present');
+    assert.ok(html.includes('How it works'), 'how-it-works section present');
     assert.ok(html.includes('Globex'), 'winning brand rendered server-side');
     assert.ok(html.includes('09:00–10:00'), 'hour labels rendered');
     assert.ok(html.includes('Bigger'), 'the winning tagline is server-rendered');

@@ -2,6 +2,7 @@ import 'server-only';
 
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import { DEFAULT_CAMPAIGN_DAYS } from './hours';
 import type { Database } from './supabase/database.types';
 import type { BidInput } from './validation';
 
@@ -9,7 +10,12 @@ const MAX_ATTEMPTS = 5;
 const UNIQUE_VIOLATION = '23505';
 
 export type SettlementOutcome =
-  | { result: 'won'; previousWinnerEmail: string | null; previousBid: number }
+  | {
+      result: 'won';
+      previousWinnerEmail: string | null;
+      previousBid: number;
+      campaignDays: number;
+    }
   | { result: 'outbid'; standingBid: number };
 
 /**
@@ -28,7 +34,9 @@ export async function applyWinningBid(
   for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
     const { data: existing, error: readError } = await supabase
       .from('hours')
-      .select('id, current_bid, bid_count, winner_email')
+      // Selected with '*' so settlement keeps working if this deploy lands
+      // before migration 0002 adds campaign_days.
+      .select('*')
       .eq('hour_number', bid.hour_number)
       .maybeSingle();
 
@@ -49,7 +57,12 @@ export async function applyWinningBid(
       });
 
       if (!insertError) {
-        return { result: 'won', previousWinnerEmail: null, previousBid: 0 };
+        return {
+          result: 'won',
+          previousWinnerEmail: null,
+          previousBid: 0,
+          campaignDays: DEFAULT_CAMPAIGN_DAYS,
+        };
       }
       // Another settlement created the row first — re-read and compare properly.
       if (insertError.code === UNIQUE_VIOLATION) continue;
@@ -59,6 +72,7 @@ export async function applyWinningBid(
     const standingBid = Number(existing.current_bid ?? 0);
     const standingCount = existing.bid_count ?? 0;
     const displacedWinner = existing.winner_email;
+    const campaignDays = existing.campaign_days ?? DEFAULT_CAMPAIGN_DAYS;
 
     if (bid.bid_amount <= standingBid) {
       return { result: 'outbid', standingBid };
@@ -85,7 +99,12 @@ export async function applyWinningBid(
       throw new Error(`Failed to update hour ${bid.hour_number}: ${updateError.message}`);
     }
     if (updated && updated.length > 0) {
-      return { result: 'won', previousWinnerEmail: displacedWinner, previousBid: standingBid };
+      return {
+        result: 'won',
+        previousWinnerEmail: displacedWinner,
+        previousBid: standingBid,
+        campaignDays,
+      };
     }
     // The row moved underneath us; loop and re-evaluate against the new bid.
   }

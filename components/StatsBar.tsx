@@ -43,16 +43,19 @@ export function StatsBar() {
       )}
 
       {state.status === 'ready' && (
-        <p className="tabular flex items-center gap-2 font-mono">
-          <span
-            className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-money"
-            aria-hidden
-          />
-          <span>
-            {state.stats.live.toLocaleString('en-US')} live ·{' '}
-            {state.stats.visitors.toLocaleString('en-US')} visitors ·{' '}
-            {state.stats.pageviews.toLocaleString('en-US')} views
+        <p className="tabular flex flex-wrap items-center justify-center gap-x-2 gap-y-1 font-mono">
+          <span className="flex items-center gap-1.5 font-bold text-livered">
+            <span
+              className="inline-block h-2 w-2 shrink-0 animate-pulse rounded-full bg-livered"
+              aria-hidden
+            />
+            LIVE
           </span>
+          <span aria-hidden className="text-white/25">·</span>
+          <span>{state.stats.live.toLocaleString('en-US')} people are here</span>
+          <span aria-hidden className="text-white/25">·</span>
+          {/* Labelled 30d because that is the window the overview endpoint returns. */}
+          <span>{state.stats.visitors.toLocaleString('en-US')} visitors (30d)</span>
         </p>
       )}
 

@@ -19,11 +19,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL(publicEnv.siteUrl),
-  title: '24hrs.lol — Own an hour. Own the attention.',
+  title: "24hrs.lol — The internet has 24 hours. We're auctioning all of them.",
   description:
-    '24 hourly advertising slots. The highest bid owns that hour on the homepage clock. Live, every day.',
+    '24 hours. 24 advertising moments. One brand gets the spotlight every hour — the highest bid owns it.',
   openGraph: {
-    title: '24hrs.lol — Own an hour. Own the attention.',
+    title: "24hrs.lol — The internet has 24 hours. We're auctioning all of them.",
     description:
       '24 hourly advertising slots. The highest bid owns that hour on the homepage clock.',
     url: publicEnv.siteUrl,
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: '24hrs.lol — Own an hour. Own the attention.',
+    title: "24hrs.lol — The internet has 24 hours. We're auctioning all of them.",
     description: '24 hourly advertising slots. The highest bid owns that hour.',
   },
   robots: { index: true, follow: true },

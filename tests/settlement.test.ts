@@ -35,7 +35,9 @@ async function main() {
   await check('creates the hour row when the slot has never been sold', async () => {
     const db = new FakeDb();
     const outcome = await applyWinningBid(client(db), bid(25));
-    assert.deepEqual(outcome, { result: 'won', previousWinnerEmail: null, previousBid: 0 });
+    assert.deepEqual(outcome, {
+      result: 'won', previousWinnerEmail: null, previousBid: 0, campaignDays: 30,
+    });
     assert.equal(db.tables.hours?.length, 1);
     assert.equal(db.tables.hours?.[0]?.current_bid, 25);
     assert.equal(db.tables.hours?.[0]?.bid_count, 1);
@@ -44,10 +46,12 @@ async function main() {
   await check('beats a standing bid and reports who was displaced', async () => {
     const db = new FakeDb();
     db.tables.hours = [
-      { id: 'h9', hour_number: 9, current_bid: '50.00', bid_count: 3, winner_email: 'old@x.com' },
+      { id: 'h9', hour_number: 9, current_bid: '50.00', bid_count: 3, winner_email: 'old@x.com', campaign_days: 30 },
     ];
     const outcome = await applyWinningBid(client(db), bid(51));
-    assert.deepEqual(outcome, { result: 'won', previousWinnerEmail: 'old@x.com', previousBid: 50 });
+    assert.deepEqual(outcome, {
+      result: 'won', previousWinnerEmail: 'old@x.com', previousBid: 50, campaignDays: 30,
+    });
     assert.equal(db.tables.hours?.[0]?.current_bid, 51);
     assert.equal(db.tables.hours?.[0]?.bid_count, 4);
     assert.equal(db.tables.hours?.[0]?.winner_email, 'new@x.com');

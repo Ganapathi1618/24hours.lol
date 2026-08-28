@@ -137,7 +137,13 @@ export async function POST(request: Request): Promise<NextResponse> {
       await demotePreviousWinner(supabase, bid.hour_number, paymentId);
 
       await Promise.all([
-        sendWinnerEmail(bid.bidder_email, bid.hour_number, bid.bid_amount, bid.brand_name),
+        sendWinnerEmail(
+          bid.bidder_email,
+          bid.hour_number,
+          bid.bid_amount,
+          bid.brand_name,
+          outcome.campaignDays,
+        ),
         outcome.previousWinnerEmail && outcome.previousWinnerEmail !== bid.bidder_email
           ? sendOutbidEmail(outcome.previousWinnerEmail, bid.hour_number, bid.bid_amount)
           : Promise.resolve(),

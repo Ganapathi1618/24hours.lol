@@ -15,11 +15,26 @@ export function isValidHourNumber(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 23;
 }
 
+/** Default campaign length when the row does not set one. */
+export const DEFAULT_CAMPAIGN_DAYS = 30;
+
 /** "09:00–10:00" — the label used on the board, in the modal and on receipts. */
 export function formatHourRange(hour: number): string {
   const start = String(hour).padStart(2, '0');
   const end = String((hour + 1) % 24).padStart(2, '0');
   return `${start}:00–${end}:00`;
+}
+
+/** "9 AM" / "12 PM" — the conversational label used in strips and emails. */
+export function formatHour12(hour: number): string {
+  const suffix = hour < 12 ? 'AM' : 'PM';
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return `${display} ${suffix}`;
+}
+
+/** The next `count` hours after the current one, wrapping past midnight. */
+export function upcomingHours(currentHour: number, count: number): number[] {
+  return Array.from({ length: count }, (_, index) => (currentHour + index + 1) % 24);
 }
 
 function toNumber(value: number | string | null | undefined): number {
@@ -59,6 +74,8 @@ export function slotFromRow(row: HourRow): HourSlot {
     status: row.status,
     min_bid: minBidFor(currentBid, bidCount),
     claimed: Boolean(row.brand_name && bidCount > 0),
+    auction_end_time: row.auction_end_time,
+    campaign_days: row.campaign_days ?? DEFAULT_CAMPAIGN_DAYS,
   };
 }
 
@@ -75,6 +92,8 @@ export function emptySlot(hour: number): HourSlot {
     status: 'open',
     min_bid: OPENING_BID,
     claimed: false,
+    auction_end_time: null,
+    campaign_days: DEFAULT_CAMPAIGN_DAYS,
   };
 }
 

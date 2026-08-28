@@ -23,11 +23,24 @@ const testEnv = {
   DODO_API_KEY: 'test-dodo-key',
   DODO_BID_PRODUCT_ID: 'prod_test',
   DODO_API_BASE: 'http://127.0.0.1:54321',
+  DATAFAST_API_BASE: 'http://127.0.0.1:54321',
+  DATAFAST_API_KEY: 'test-datafast-key',
+  NEXT_PUBLIC_DATAFAST_WEBSITE_ID: 'dfid_test',
   DODO_WEBHOOK_SECRET: `whsec_${Buffer.from('test-secret-for-24hrs-lol').toString('base64')}`,
   NEXT_PUBLIC_SITE_URL: `http://127.0.0.1:${PORT}`,
   CRON_SECRET: 'test-cron-secret',
   ADMIN_PASSWORD: 'test-admin-pw',
 };
+
+// A server left over from another run would silently answer these tests with a
+// different environment, so refuse to start rather than test the wrong process.
+try {
+  await fetch(`http://127.0.0.1:${PORT}/`);
+  console.error(`Port ${PORT} is already serving. Stop it first: pkill -f next-server`);
+  process.exit(1);
+} catch {
+  /* nothing listening, which is what we want */
+}
 
 const server = spawn('npx', ['next', 'start', '-p', String(PORT)], {
   env: testEnv,

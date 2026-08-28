@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 
-import { minBidFor, buildBoard, sortForBoard, formatHourRange, formatMoney } from '../lib/hours';
+import {
+  minBidFor,
+  buildBoard,
+  sortForBoard,
+  formatHourRange,
+  formatHour12,
+  formatMoney,
+  upcomingHours,
+} from '../lib/hours';
 import { validateBid, normaliseUrl } from '../lib/validation';
 import { verifyWebhookSignature } from '../lib/webhook-signature';
 import type { HourRow } from '../lib/types';
@@ -96,7 +104,8 @@ const rows: HourRow[] = [
   {
     id: 'a', hour_number: 9, current_bid: '50.00', bid_count: 3, brand_name: 'Acme',
     brand_tagline: 'Ship it', brand_url: 'https://acme.com', brand_logo_url: null,
-    winner_email: 'a@b.com', status: 'open', created_at: '', updated_at: '',
+    winner_email: 'a@b.com', status: 'open', auction_end_time: null, campaign_days: 30,
+    created_at: '', updated_at: '',
   },
 ];
 check('always yields all 24 slots', () => {
@@ -124,6 +133,25 @@ check('hour labels wrap at midnight', () => {
 });
 check('money is formatted with separators', () => {
   assert.equal(formatMoney(1240), '$1,240');
+});
+
+check('12-hour labels read the way people say them', () => {
+  assert.equal(formatHour12(0), '12 AM');
+  assert.equal(formatHour12(9), '9 AM');
+  assert.equal(formatHour12(12), '12 PM');
+  assert.equal(formatHour12(13), '1 PM');
+  assert.equal(formatHour12(23), '11 PM');
+});
+check('the next-hours strip wraps past midnight', () => {
+  assert.deepEqual(upcomingHours(22, 4), [23, 0, 1, 2]);
+  assert.deepEqual(upcomingHours(9, 4), [10, 11, 12, 13]);
+});
+check('new rows carry the auction window through to the board', () => {
+  const slot = buildBoard(rows).find((s) => s.hour_number === 9);
+  assert.equal(slot?.campaign_days, 30);
+  assert.equal(slot?.auction_end_time, null);
+  const empty = buildBoard([]).find((s) => s.hour_number === 4);
+  assert.equal(empty?.campaign_days, 30);
 });
 
 console.log('\n— Bid validation —');

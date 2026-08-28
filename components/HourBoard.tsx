@@ -1,5 +1,6 @@
 'use client';
 
+import { Countdown } from './Countdown';
 import { formatHourRange, formatMoney, sortForBoard } from '@/lib/hours';
 import type { HourSlot } from '@/lib/types';
 
@@ -26,7 +27,7 @@ export function HourBoard({ hours, currentHour, onBid }: Props) {
               type="button"
               onClick={() => onBid(slot.hour_number)}
               aria-label={`Bid on ${formatHourRange(slot.hour_number)} UTC, current bid ${formatMoney(slot.current_bid)}`}
-              className={`grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-4 text-left transition-colors hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:grid-cols-[10rem_1fr_5rem_7rem_9rem] sm:gap-x-4 ${
+              className={`grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-4 text-left transition-colors hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:grid-cols-[10.5rem_1fr_6rem_7rem_9rem] sm:gap-x-4 ${
                 isLive ? 'border-l-2 border-l-accent bg-blue-50/40' : 'border-l-2 border-l-transparent'
               }`}
             >
@@ -43,8 +44,13 @@ export function HourBoard({ hours, currentHour, onBid }: Props) {
                 )}
               </span>
 
-              <span className="tabular col-start-3 row-start-1 text-right font-mono text-xs text-neutral-400 sm:col-start-3 sm:text-left">
-                {slot.bid_count} {slot.bid_count === 1 ? 'bid' : 'bids'}
+              <span className="tabular col-start-3 row-start-1 flex flex-col items-end font-mono text-xs text-neutral-400 sm:col-start-3 sm:items-start">
+                <span>
+                  {slot.bid_count} {slot.bid_count === 1 ? 'bid' : 'bids'}
+                </span>
+                {slot.auction_end_time && (
+                  <Countdown endsAt={slot.auction_end_time} className="text-[10px] text-neutral-400" />
+                )}
               </span>
 
               <span className="tabular col-span-2 col-start-1 row-start-2 font-mono text-base font-bold text-money sm:col-span-1 sm:col-start-4 sm:row-start-1 sm:text-right">
@@ -62,7 +68,7 @@ export function HourBoard({ hours, currentHour, onBid }: Props) {
                     {slot.status === 'ended' ? 'Closed' : 'Open'}
                   </span>
                 )}
-                <span className="whitespace-nowrap text-sm font-medium text-accent">Bid →</span>
+                <span className="whitespace-nowrap text-sm font-medium text-accent">Bid Now →</span>
               </span>
             </button>
           </li>

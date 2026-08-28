@@ -13,6 +13,10 @@ export type HourRow = {
   brand_logo_url: string | null;
   winner_email: string | null;
   status: HourStatus;
+  /** When bidding on this hour closes. Null means it stays open indefinitely. */
+  auction_end_time: string | null;
+  /** How long the winner's brand runs, in days. */
+  campaign_days: number | null;
   created_at: string;
   updated_at: string;
 };
@@ -52,6 +56,10 @@ export interface HourSlot {
   min_bid: number;
   /** True when the slot has never received a paid bid. */
   claimed: boolean;
+  /** ISO timestamp when bidding closes, or null if open-ended. */
+  auction_end_time: string | null;
+  /** How long the winning brand runs, in days. */
+  campaign_days: number;
 }
 
 export interface HoursResponse {

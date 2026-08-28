@@ -10,6 +10,8 @@ export type HourInsert = {
   brand_logo_url?: string | null;
   winner_email?: string | null;
   status?: HourStatus;
+  auction_end_time?: string | null;
+  campaign_days?: number | null;
   updated_at?: string;
 };
 

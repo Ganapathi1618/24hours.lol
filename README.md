@@ -1,7 +1,10 @@
 # 24hrs.lol
 
-A live 24-hour advertising clock. Twenty-four hourly slots; the highest bid owns
-that hour on the homepage clock, every day, until someone outbids it.
+**The internet has 24 hours. We're auctioning all of them.**
+
+Twenty-four hourly advertising slots. The highest bid owns that hour on the
+homepage clock, every day, for the length of its campaign — until someone
+outbids it.
 
 Next.js 14 (App Router) · TypeScript (strict) · Supabase · Dodo Payments ·
 Tailwind · Vercel.
@@ -37,9 +40,17 @@ The minimum is always recomputed from the database inside
 
 ### 1. Database
 
-Run `supabase/migrations/0001_init.sql` in the Supabase SQL editor. It is
-idempotent, and it creates the tables, indexes, RLS policies, the realtime
-publication and the six seeded opening prices.
+Run the migrations in `supabase/migrations/` in order, in the Supabase SQL
+editor. Both are idempotent.
+
+- `0001_init.sql` — tables, indexes, RLS policies, the realtime publication and
+  the six seeded opening prices.
+- `0002_auction_window.sql` — adds `auction_end_time` (drives the board
+  countdown; null means the hour stays open) and `campaign_days` (default 30).
+
+Settlement reads the hours row with `select('*')`, so shipping the code before
+running `0002` will not break payments — the board simply falls back to a
+30-day campaign until the column exists.
 
 Note on RLS: `hours` is world-readable, `bids` is insert-only and **never**
 publicly readable — bid rows hold bidder email addresses. Only the service role
@@ -98,6 +109,7 @@ the server-rendered board.
 | `POST /api/bid/checkout` | Validates a bid against the live minimum, creates a Dodo payment link. |
 | `POST /api/webhooks/dodo` | Signature-verified settlement. Idempotent. |
 | `GET /api/stats` | Datafast live/visitor counts, revalidated every 30s. |
+| `GET /api/analytics` | Audience insights for the hour modal, revalidated every 60s. |
 | `GET /api/cron/rollover` | Daily status rollover. Bearer `CRON_SECRET`. |
 | `/admin` | Revenue, board state and recent bids. Password gated. |
 
@@ -113,5 +125,14 @@ the server-rendered board.
   retrying on conflict. `tests/settlement.test.ts` covers the race cases.
 - **The webhook is idempotent by `payment_id`.** It returns 500 on transient
   failures so Dodo retries, which is only safe because of that check.
-- **`/api/stats` fails closed.** If Datafast is unreachable the UI hides the
-  counts rather than showing invented numbers.
+- **`/api/stats` and `/api/analytics` fail closed.** If Datafast is unreachable
+  the UI hides those blocks rather than showing invented numbers.
+- **Audience insights only use the two confirmed Datafast endpoints.** Country
+  and per-hour breakdowns are read out of the overview payload when Datafast
+  includes them; when it does not, the field is null and the modal hides that
+  block. No endpoint names are guessed and no figures are estimated.
+- **The stats bar says "visitors (30d)", not "today"**, because the overview
+  call uses a rolling 30-day window. Change the range in `lib/datafast.ts` if
+  you want a today-only figure, and change the label with it.
+- **`DODO_API_BASE` and `DATAFAST_API_BASE` can be overridden**, which is how
+  the end-to-end suite points them at its mock.

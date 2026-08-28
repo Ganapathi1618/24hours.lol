@@ -2,10 +2,15 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { BidModal } from './BidModal';
-import { ClockSection } from './ClockSection';
 import { ErrorBoundary } from './ErrorBoundary';
+import { Headline } from './Headline';
+import { Hero } from './Hero';
 import { HourBoard } from './HourBoard';
+import { HourModal } from './HourModal';
+import { HowItWorks } from './HowItWorks';
+import { NextHoursStrip } from './NextHoursStrip';
+import { WinBanner } from './WinBanner';
+import { isValidHourNumber } from '@/lib/hours';
 import { getBrowserClient } from '@/lib/supabase/browser';
 import type { HourSlot, HoursResponse } from '@/lib/types';
 
@@ -15,14 +20,15 @@ interface Props {
 }
 
 const POLL_INTERVAL_MS = 60_000;
+/** How long to keep re-checking the board for a webhook to land after payment. */
+const WIN_CONFIRM_DELAYS_MS = [2000, 5000, 10_000, 20_000];
 
 export function Marketplace({ initialHours, serverTime }: Props) {
-  // Seeded from the server clock so the first paint matches the SSR markup.
   const [now, setNow] = useState<Date>(() => new Date(serverTime));
   const [hours, setHours] = useState<HourSlot[] | null>(initialHours);
   const [loadFailed, setLoadFailed] = useState(initialHours === null);
   const [selectedHour, setSelectedHour] = useState<number | null>(null);
-  const [justPaid, setJustPaid] = useState(false);
+  const [wonHour, setWonHour] = useState<number | null>(null);
 
   const currentHour = now.getUTCHours();
   const refreshingRef = useRef(false);
@@ -38,8 +44,6 @@ export function Marketplace({ initialHours, serverTime }: Props) {
       setLoadFailed(false);
     } catch (error) {
       console.error('[marketplace] refresh failed', error);
-      // Keep whatever is already on screen; only an empty board is an error.
-      setLoadFailed((previous) => previous && true);
     } finally {
       refreshingRef.current = false;
     }
@@ -52,7 +56,7 @@ export function Marketplace({ initialHours, serverTime }: Props) {
     return () => clearInterval(timer);
   }, []);
 
-  // Realtime: any write to `hours` re-reads the board.
+  // Realtime: any write to `hours` re-reads the board for every open tab.
   useEffect(() => {
     const supabase = getBrowserClient();
     if (!supabase) return;
@@ -85,15 +89,19 @@ export function Marketplace({ initialHours, serverTime }: Props) {
     void refresh();
   }, [currentHour, refresh]);
 
-  // Returning from Dodo: settlement is a webhook, so it may land a beat later.
+  // Returning from Dodo: settlement is a webhook, so poll until the board agrees.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get('success') !== 'true') return;
 
-    setJustPaid(true);
+    const paidHour = Number.parseInt(params.get('hour') ?? '', 10);
+    setWonHour(isValidHourNumber(paidHour) ? paidHour : null);
     window.history.replaceState({}, '', window.location.pathname);
-    const timer = setTimeout(() => void refresh(), 2500);
-    return () => clearTimeout(timer);
+
+    const timers = WIN_CONFIRM_DELAYS_MS.map((delay) =>
+      setTimeout(() => void refresh(), delay),
+    );
+    return () => timers.forEach(clearTimeout);
   }, [refresh]);
 
   const featured = useMemo(
@@ -102,30 +110,42 @@ export function Marketplace({ initialHours, serverTime }: Props) {
   );
 
   const selectedSlot = useMemo(
-    () => (selectedHour === null ? null : hours?.find((s) => s.hour_number === selectedHour) ?? null),
+    () =>
+      selectedHour === null ? null : hours?.find((s) => s.hour_number === selectedHour) ?? null,
     [hours, selectedHour],
+  );
+
+  const wonSlot = useMemo(
+    () => (wonHour === null ? null : hours?.find((s) => s.hour_number === wonHour) ?? null),
+    [hours, wonHour],
   );
 
   return (
     <>
-      {justPaid && (
-        <div
-          role="status"
-          className="bg-money px-4 py-2.5 text-center text-sm font-medium text-white"
-        >
-          Payment received — your bid is being confirmed. The board updates in a moment.
-        </div>
+      {wonHour !== null && (
+        <WinBanner
+          hourNumber={wonHour}
+          slot={wonSlot}
+          confirmed={Boolean(wonSlot?.claimed)}
+          onDismiss={() => setWonHour(null)}
+        />
       )}
 
-      <ClockSection now={now} currentHour={currentHour} slot={featured} onBid={setSelectedHour} />
+      <Hero now={now} currentHour={currentHour} slot={featured} onBid={setSelectedHour} />
 
-      <section className="mx-auto w-full max-w-3xl px-4 py-14 sm:py-20">
-        <header className="mb-8 px-1">
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Own an hour. Own the attention.
-          </h1>
-          <p className="mt-2 text-neutral-500">
-            24 slots. Highest bid owns that hour. Updated live.
+      <Headline />
+
+      {hours && (
+        <ErrorBoundary fallback={null}>
+          <NextHoursStrip hours={hours} currentHour={currentHour} onBid={setSelectedHour} />
+        </ErrorBoundary>
+      )}
+
+      <section id="board" className="mx-auto w-full max-w-3xl px-5 py-10 sm:py-14">
+        <header className="mb-6 px-1">
+          <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">The 24 hour board</h2>
+          <p className="mt-1.5 text-neutral-500">
+            Highest bid owns that hour. Updated live.
           </p>
         </header>
 
@@ -162,15 +182,15 @@ export function Marketplace({ initialHours, serverTime }: Props) {
           </ul>
         )}
 
-        <p className="mt-8 px-1 text-xs text-neutral-400">
-          Slots run on UTC. Your brand shows on the homepage clock for that hour, every day, until
-          someone outbids you.
+        <p className="mt-6 px-1 text-xs text-neutral-400">
+          Slots run on UTC. Your brand shows on the homepage clock for that hour, every day, for
+          the length of your campaign.
         </p>
       </section>
 
-      {selectedSlot && (
-        <BidModal slot={selectedSlot} onClose={() => setSelectedHour(null)} />
-      )}
+      <HowItWorks />
+
+      {selectedSlot && <HourModal slot={selectedSlot} onClose={() => setSelectedHour(null)} />}
     </>
   );
 }
