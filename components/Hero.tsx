@@ -2,8 +2,6 @@
 
 import { BrandMark } from './BrandMark';
 import { CircularClock } from './CircularClock';
-import { ErrorBoundary } from './ErrorBoundary';
-import { LiveStatsBar } from './LiveStatsBar';
 import { Nav } from './Nav';
 import { formatHourRange, formatMoney } from '@/lib/hours';
 import type { HourSlot } from '@/lib/types';
@@ -24,10 +22,6 @@ export function Hero({ now, currentHour, slot, onBid }: Props) {
       id="top"
       className="flex min-h-[100svh] flex-col bg-ink text-white sm:min-h-0"
     >
-      <ErrorBoundary fallback={null}>
-        <LiveStatsBar />
-      </ErrorBoundary>
-
       <Nav onBid={() => onBid(currentHour)} />
 
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-8 px-5 py-8 sm:gap-10 sm:py-14">
@@ -60,7 +54,6 @@ export function Hero({ now, currentHour, slot, onBid }: Props) {
           </article>
         ) : (
           <div className="w-full max-w-md text-center">
-            {/* Ghost card: shows an advertiser exactly what they would be buying. */}
             <div className="flex items-center gap-4 rounded border border-dashed border-white/20 px-5 py-6 text-left">
               <span
                 aria-hidden
