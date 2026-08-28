@@ -3,8 +3,25 @@ import { NextResponse } from "next/server";
 export const revalidate = 30;
 
 export async function GET() {
-  const websiteId = process.env.DATAFAST_WEBSITE_ID!;
-  const apiKey = process.env.DATAFAST_API_KEY!;
+  // The tracking script in app/layout.tsx reads NEXT_PUBLIC_DATAFAST_WEBSITE_ID,
+  // so accept either name — otherwise whichever one is set in the host decides
+  // whether tracking or stats works, and the other silently breaks.
+  const websiteId =
+    process.env.DATAFAST_WEBSITE_ID ?? process.env.NEXT_PUBLIC_DATAFAST_WEBSITE_ID;
+  const apiKey = process.env.DATAFAST_API_KEY;
+
+  if (!websiteId || !apiKey) {
+    const missing = [
+      apiKey ? null : "DATAFAST_API_KEY",
+      websiteId ? null : "DATAFAST_WEBSITE_ID (or NEXT_PUBLIC_DATAFAST_WEBSITE_ID)",
+    ].filter(Boolean);
+    console.error("[api/stats] not configured, missing:", missing.join(", "));
+    return NextResponse.json(
+      { ok: false, error: "stats_not_configured", missing },
+      { status: 503 }
+    );
+  }
+
   const headers = { Authorization: `Bearer ${apiKey}` };
 
   const startAt = "2026-07-29";

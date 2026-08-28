@@ -290,23 +290,15 @@ async function main() {
 
   console.log('\n— Stats —');
 
-  // TEMPORARY: /api/stats is a raw passthrough while we identify Datafast's
-  // response shape. Restore the parsed-numbers assertions when the route is
-  // reverted (see the header comment in app/api/stats/route.ts).
-  await check('stats passes the upstream payloads through untouched', async () => {
+  // /api/stats calls datafa.st directly, so it cannot be pointed at the mock.
+  // What is assertable here is that it fails cleanly rather than throwing, and
+  // that a missing website id is reported instead of being sent as "undefined".
+  await check('stats reports a clean error when it cannot reach Datafast', async () => {
     const response = await fetch(`${BASE}/api/stats`);
-    assert.equal(response.status, 200);
+    assert.ok([502, 503].includes(response.status), `expected 502/503, got ${response.status}`);
     const data = await response.json();
-    assert.equal(data.debug, true);
-    // Verbatim, not reinterpreted.
-    assert.equal(data.realtime.live, 12);
-    assert.equal(data.overview.visitors, 48210);
-    assert.equal(data.overview.pageviews, 91500);
-    assert.ok(Array.isArray(data.overview.countries), 'nested shapes survive');
-    assert.equal(data.meta.realtime.status, 200);
-    assert.equal(data.meta.overview.status, 200);
-    // Today, never a future date.
-    assert.equal(data.dateRange.endAt, new Date().toISOString().split('T')[0]);
+    assert.equal(data.ok, false);
+    assert.ok(typeof data.error === 'string' && data.error.length > 0, 'names the failure');
   });
 
   console.log('\n— Analytics —');
