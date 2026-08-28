@@ -20,13 +20,14 @@ export function HourBoard({ hours, currentHour, onBid }: Props) {
       {ordered.map((slot) => {
         const isLive = slot.hour_number === currentHour;
         const isHot = slot.bid_count >= HOT_BID_THRESHOLD;
+        const displayPrice = slot.claimed ? slot.current_bid : slot.min_bid;
 
         return (
           <li key={slot.hour_number}>
             <button
               type="button"
               onClick={() => onBid(slot.hour_number)}
-              aria-label={`Bid on ${formatHourRange(slot.hour_number)} UTC, current bid ${formatMoney(slot.current_bid)}`}
+              aria-label={`Bid on ${formatHourRange(slot.hour_number)} UTC, from ${formatMoney(displayPrice)}`}
               className={`grid w-full grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 px-4 py-4 text-left transition-colors hover:bg-neutral-50 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-accent sm:grid-cols-[10.5rem_1fr_6rem_7rem_9rem] sm:gap-x-4 ${
                 isLive ? 'border-l-2 border-l-accent bg-blue-50/40' : 'border-l-2 border-l-transparent'
               }`}
@@ -54,7 +55,7 @@ export function HourBoard({ hours, currentHour, onBid }: Props) {
               </span>
 
               <span className="tabular col-span-2 col-start-1 row-start-2 font-mono text-base font-bold text-money sm:col-span-1 sm:col-start-4 sm:row-start-1 sm:text-right">
-                {formatMoney(slot.current_bid)}
+                {formatMoney(displayPrice)}
               </span>
 
               <span className="col-start-3 row-start-2 flex items-center justify-end gap-3 sm:col-start-5 sm:row-start-1">
