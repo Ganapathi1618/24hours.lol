@@ -104,6 +104,9 @@ export function Marketplace({ initialHours, serverTime }: Props) {
     return () => timers.forEach(clearTimeout);
   }, [refresh]);
 
+  // Stable identity: the clock re-renders this component every second.
+  const closeModal = useCallback(() => setSelectedHour(null), []);
+
   const featured = useMemo(
     () => hours?.find((slot) => slot.hour_number === currentHour) ?? null,
     [hours, currentHour],
@@ -190,7 +193,7 @@ export function Marketplace({ initialHours, serverTime }: Props) {
 
       <HowItWorks />
 
-      {selectedSlot && <HourModal slot={selectedSlot} onClose={() => setSelectedHour(null)} />}
+      {selectedSlot && <HourModal slot={selectedSlot} onClose={closeModal} />}
     </>
   );
 }

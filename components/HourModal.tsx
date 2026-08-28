@@ -33,20 +33,34 @@ export function HourModal({ slot, onClose }: Props) {
 
   const range = formatHourRange(slot.hour_number);
 
+  // Held in a ref so a caller passing a fresh closure each render cannot
+  // re-run the effects below.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  // Focus the amount once, when the modal opens. This MUST NOT depend on
+  // anything that changes while the modal is open: the page re-renders every
+  // second from the clock, and re-running this would pull the caret out of
+  // whichever field the bidder is typing in.
+  useEffect(() => {
+    amountRef.current?.focus();
+  }, []);
+
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose();
+      if (event.key === 'Escape') onCloseRef.current();
     }
     document.addEventListener('keydown', onKeyDown);
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    amountRef.current?.focus();
 
     return () => {
       document.removeEventListener('keydown', onKeyDown);
       document.body.style.overflow = previousOverflow;
     };
-  }, [onClose]);
+  }, []);
 
   function step(delta: number) {
     const parsed = Number.parseInt(amount, 10);

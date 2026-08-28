@@ -31,21 +31,49 @@ function pickNumber(source: unknown, keys: readonly string[], depth = 0): number
   return null;
 }
 
+/**
+ * Why the last Datafast call failed, so /api/stats can report the cause instead
+ * of a bare "unavailable". Status codes and upstream error text only — never a
+ * key or any request header.
+ */
+let lastFailure: string | null = null;
+
+export function lastDatafastFailure(): string | null {
+  return lastFailure;
+}
+
 async function getJson(path: string): Promise<unknown | null> {
+  const endpoint = path.split('?')[0] ?? path;
   try {
     const response = await fetch(`${DATAFAST_API_BASE}${path}`, {
       headers: { Authorization: `Bearer ${env.datafastApiKey}` },
       next: { revalidate: 30 },
     });
     if (!response.ok) {
-      console.error('[datafast]', path, response.status, (await response.text()).slice(0, 300));
+      const body = (await response.text()).slice(0, 200);
+      console.error('[datafast]', path, response.status, body);
+      lastFailure = `${endpoint} returned ${response.status}: ${body || 'no body'}`;
       return null;
     }
+    lastFailure = null;
     return (await response.json()) as unknown;
   } catch (error) {
     console.error('[datafast] request failed', path, error);
+    lastFailure = `${endpoint} could not be reached: ${(error as Error).message}`;
     return null;
   }
+}
+
+/** Config problems that stop the call before it is made. */
+export function datafastConfigProblem(): string | null {
+  if (!env.datafastApiKey && !env.datafastWebsiteId) {
+    return 'DATAFAST_API_KEY and NEXT_PUBLIC_DATAFAST_WEBSITE_ID are not set on this deployment.';
+  }
+  if (!env.datafastApiKey) return 'DATAFAST_API_KEY is not set on this deployment.';
+  if (!env.datafastWebsiteId) {
+    return 'NEXT_PUBLIC_DATAFAST_WEBSITE_ID is not set on this deployment.';
+  }
+  return null;
 }
 
 function isoDate(date: Date): string {
