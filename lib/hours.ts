@@ -121,3 +121,75 @@ export function sortForBoard(slots: HourSlot[], currentHour: number): HourSlot[]
 export function formatMoney(amount: number): string {
   return `$${Math.round(amount).toLocaleString('en-US')}`;
 }
+
+/**
+ * The same hour window expressed in the viewer's own timezone, e.g.
+ * "3:30–4:30 AM IST" for 22:00–23:00 UTC seen from India.
+ *
+ * Browsers report `timeZoneName: 'short'` as a raw offset ("GMT+5:30") for many
+ * zones, so when that happens the abbreviation is built from the long name
+ * ("India Standard Time" → "IST"). Returns null if Intl cannot resolve a zone,
+ * so the caller can simply render nothing.
+ */
+export function formatLocalHourRange(hour: number, now: Date = new Date()): string | null {
+  try {
+    const start = new Date(
+      Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), hour, 0, 0),
+    );
+    const end = new Date(start.getTime() + 60 * 60 * 1000);
+
+    const time = new Intl.DateTimeFormat(undefined, {
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+
+    const parts = (date: Date) => {
+      const found = time.formatToParts(date);
+      const value = (type: Intl.DateTimeFormatPartTypes) =>
+        found.find((part) => part.type === type)?.value ?? '';
+      return {
+        clock: `${value('hour')}:${value('minute')}`,
+        meridiem: value('dayPeriod').toUpperCase(),
+      };
+    };
+
+    const from = parts(start);
+    const to = parts(end);
+    if (!from.clock.trim() || !to.clock.trim()) return null;
+
+    // "11:30 AM–12:30 PM" when the window crosses noon or midnight,
+    // "3:30–4:30 AM" when it does not.
+    const window =
+      from.meridiem === to.meridiem
+        ? `${from.clock}–${to.clock} ${to.meridiem}`
+        : `${from.clock} ${from.meridiem}–${to.clock} ${to.meridiem}`;
+
+    return `${window} ${localZoneAbbreviation(start)}`.trim();
+  } catch {
+    return null;
+  }
+}
+
+/** "IST", "PST", "CET" — falling back to the offset when nothing better exists. */
+function localZoneAbbreviation(date: Date): string {
+  const readName = (style: 'short' | 'long'): string =>
+    new Intl.DateTimeFormat(undefined, { timeZoneName: style })
+      .formatToParts(date)
+      .find((part) => part.type === 'timeZoneName')?.value ?? '';
+
+  // An offset always carries a sign ("GMT+5:30", "UTC-3"); a real abbreviation
+  // never does, so this keeps "IST", "PST" and a bare "UTC" while rejecting
+  // offsets.
+  const short = readName('short');
+  if (short && !/[+-]/.test(short)) return short;
+
+  const long = readName('long');
+  const initials = long
+    .split(/\s+/)
+    .filter((word) => /^[A-Z]/.test(word))
+    .map((word) => word[0])
+    .join('');
+
+  return initials.length >= 2 ? initials : short;
+}

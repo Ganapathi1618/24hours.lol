@@ -6,6 +6,7 @@ import {
   sortForBoard,
   formatHourRange,
   formatHour12,
+  formatLocalHourRange,
   formatMoney,
   upcomingHours,
 } from '../lib/hours';
@@ -152,6 +153,25 @@ check('new rows carry the auction window through to the board', () => {
   assert.equal(slot?.auction_end_time, null);
   const empty = buildBoard([]).find((s) => s.hour_number === 4);
   assert.equal(empty?.campaign_days, 30);
+});
+
+check('the local hour window is a one-hour range with a zone label', () => {
+  // Timezone-agnostic: the suite runs wherever it runs.
+  const label = formatLocalHourRange(22, new Date(Date.UTC(2026, 7, 28, 22, 0, 0)));
+  assert.ok(label, 'a label is produced');
+  assert.match(label ?? '', /^\d{1,2}:\d{2}( [AP]M)?–\d{1,2}:\d{2} [AP]M .+$/);
+});
+check('local windows that cross noon label both ends', () => {
+  const original = process.env.TZ;
+  process.env.TZ = 'Asia/Kolkata';
+  try {
+    const crossing = formatLocalHourRange(6, new Date(Date.UTC(2026, 7, 28, 6, 0, 0)));
+    const plain = formatLocalHourRange(22, new Date(Date.UTC(2026, 7, 28, 22, 0, 0)));
+    assert.equal(crossing, '11:30 AM–12:30 PM IST');
+    assert.equal(plain, '3:30–4:30 AM IST');
+  } finally {
+    process.env.TZ = original;
+  }
 });
 
 console.log('\n— Bid validation —');

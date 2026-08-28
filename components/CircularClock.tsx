@@ -1,6 +1,8 @@
 'use client';
 
-import { formatHourRange } from '@/lib/hours';
+import { useEffect, useState } from 'react';
+
+import { formatHourRange, formatLocalHourRange } from '@/lib/hours';
 
 function pad(value: number): string {
   return String(value).padStart(2, '0');
@@ -20,6 +22,13 @@ const RADIUS = 136;
  * in the middle. The board runs on UTC, so this reads UTC for every visitor.
  */
 export function CircularClock({ now, currentHour }: Props) {
+  // Resolved after mount only: the server has no idea what timezone the
+  // visitor is in, so rendering this during SSR would mismatch on hydration.
+  const [localRange, setLocalRange] = useState<string | null>(null);
+  useEffect(() => {
+    setLocalRange(formatLocalHourRange(currentHour));
+  }, [currentHour]);
+
   const seconds = now.getUTCSeconds();
   const minutes = now.getUTCMinutes();
   const time = `${pad(now.getUTCHours())}:${pad(minutes)}:${pad(seconds)}`;
@@ -112,6 +121,9 @@ export function CircularClock({ now, currentHour }: Props) {
         <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.2em] text-white/40">
           UTC · {formatHourRange(currentHour)}
         </p>
+        {localRange && (
+          <p className="mt-1 font-mono text-[10px] tracking-wider text-white/30">{localRange}</p>
+        )}
       </div>
     </div>
   );
