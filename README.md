@@ -60,8 +60,14 @@ signing secret into `DODO_WEBHOOK_SECRET`.
 
 ### 4. Cron
 
-`vercel.json` schedules `/api/cron/rollover` hourly. Vercel sends `CRON_SECRET`
-as a bearer token automatically; the route rejects anything else.
+`vercel.json` schedules `/api/cron/rollover` daily at 00:00 UTC — the Vercel
+hobby plan allows at most one cron run per day. Vercel sends `CRON_SECRET` as a
+bearer token automatically; the route rejects anything else.
+
+This only affects the bookkeeping `hours.status` column, not what visitors see:
+the board derives LIVE NOW and the featured brand from the ticking clock, so the
+right hour goes live every hour regardless of when the cron last ran. On a paid
+plan you can restore `"0 * * * *"` to keep `status` accurate hour by hour.
 
 ---
 
@@ -92,7 +98,7 @@ the server-rendered board.
 | `POST /api/bid/checkout` | Validates a bid against the live minimum, creates a Dodo payment link. |
 | `POST /api/webhooks/dodo` | Signature-verified settlement. Idempotent. |
 | `GET /api/stats` | Datafast live/visitor counts, revalidated every 30s. |
-| `GET /api/cron/rollover` | Hourly status rollover. Bearer `CRON_SECRET`. |
+| `GET /api/cron/rollover` | Daily status rollover. Bearer `CRON_SECRET`. |
 | `/admin` | Revenue, board state and recent bids. Password gated. |
 
 ---
