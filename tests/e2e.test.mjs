@@ -290,15 +290,23 @@ async function main() {
 
   console.log('\n— Stats —');
 
-  await check('stats returns real Datafast numbers', async () => {
+  // TEMPORARY: /api/stats is a raw passthrough while we identify Datafast's
+  // response shape. Restore the parsed-numbers assertions when the route is
+  // reverted (see the header comment in app/api/stats/route.ts).
+  await check('stats passes the upstream payloads through untouched', async () => {
     const response = await fetch(`${BASE}/api/stats`);
     assert.equal(response.status, 200);
     const data = await response.json();
-    assert.equal(data.live, 12);
-    assert.equal(data.visitors, 48210);
-    assert.equal(data.pageviews, 91500);
-    // Resolved server-side so the client never branches on a build-time value.
-    assert.ok('shareUrl' in data, 'stats carry the dashboard link');
+    assert.equal(data.debug, true);
+    // Verbatim, not reinterpreted.
+    assert.equal(data.realtime.live, 12);
+    assert.equal(data.overview.visitors, 48210);
+    assert.equal(data.overview.pageviews, 91500);
+    assert.ok(Array.isArray(data.overview.countries), 'nested shapes survive');
+    assert.equal(data.meta.realtime.status, 200);
+    assert.equal(data.meta.overview.status, 200);
+    // Today, never a future date.
+    assert.equal(data.dateRange.endAt, new Date().toISOString().split('T')[0]);
   });
 
   console.log('\n— Analytics —');

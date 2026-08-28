@@ -39,6 +39,11 @@ export function LiveStatsBar() {
         const response = await fetch('/api/stats', { cache: 'no-store' });
         if (!response.ok) throw new Error(`stats ${response.status}`);
         const stats = (await response.json()) as StatsResponse;
+        // Treat an unexpected payload as unavailable rather than rendering
+        // undefined into the bar.
+        if (typeof stats?.live !== 'number' || typeof stats?.visitors !== 'number') {
+          throw new Error('stats payload missing numbers');
+        }
         if (!cancelled) setState({ status: 'ready', stats });
       } catch {
         if (!cancelled) setState({ status: 'error' });
