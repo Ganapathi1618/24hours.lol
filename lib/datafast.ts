@@ -59,7 +59,7 @@ function isoDate(date: Date): string {
  * Returns null when Datafast is unreachable or unconfigured — the UI hides the
  * stats bar rather than showing invented numbers.
  */
-export async function fetchDatafastStats(): Promise<StatsResponse | null> {
+export async function fetchDatafastStats(): Promise<Omit<StatsResponse, 'shareUrl'> | null> {
   if (!env.datafastApiKey || !env.datafastWebsiteId) return null;
 
   const websiteId = encodeURIComponent(env.datafastWebsiteId);

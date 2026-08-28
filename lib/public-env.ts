@@ -12,8 +12,6 @@ export const publicEnv = {
   siteUrl: process.env.NEXT_PUBLIC_SITE_URL ?? 'https://24hrs.lol',
 } as const;
 
-export const DATAFAST_SHARE_URL = 'https://datafa.st/share/6a8dcd957ec703b02ac6cb54';
-
 /** True when the browser has what it needs to open a realtime channel. */
 export function hasPublicSupabase(): boolean {
   return Boolean(publicEnv.supabaseUrl && publicEnv.supabaseAnonKey);

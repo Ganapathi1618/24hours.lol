@@ -74,6 +74,13 @@ export interface StatsResponse {
   live: number;
   visitors: number;
   pageviews: number;
+  /**
+   * Public dashboard link, resolved on the server. Sent with the stats rather
+   * than read from NEXT_PUBLIC_* in the browser: those are inlined at build
+   * time, so branching on one inside a client component makes the markup
+   * disagree with the server whenever the value changes without a rebuild.
+   */
+  shareUrl: string | null;
 }
 
 export interface ApiError {

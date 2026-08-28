@@ -131,8 +131,18 @@ the server-rendered board.
   and per-hour breakdowns are read out of the overview payload when Datafast
   includes them; when it does not, the field is null and the modal hides that
   block. No endpoint names are guessed and no figures are estimated.
-- **The stats bar says "visitors (30d)", not "today"**, because the overview
-  call uses a rolling 30-day window. Change the range in `lib/datafast.ts` if
-  you want a today-only figure, and change the label with it.
+- **The stats bar labels its window ("visitors 30d", "views 30d")**, because
+  the overview call uses a rolling 30-day range. Change the range in
+  `lib/datafast.ts` if you want today-only figures, and change the label with it.
+- **No Datafast identifier is hardcoded.** The tracking script and the stats API
+  both read `NEXT_PUBLIC_DATAFAST_WEBSITE_ID`, so page views land in the same
+  project the numbers are read from. Point it at this site's own project — a
+  hardcoded id silently tracks into someone else's. The "Full stats" link comes
+  from `NEXT_PUBLIC_DATAFAST_SHARE_URL` and is hidden when unset.
+- **Never branch on a `NEXT_PUBLIC_*` value inside a client component's render.**
+  Those are inlined at build time, so if the variable changes in the host without
+  a redeploy the client markup disagrees with the server and React throws a
+  hydration error on every page load. The dashboard link is sent down with the
+  stats payload for exactly this reason.
 - **`DODO_API_BASE` and `DATAFAST_API_BASE` can be overridden**, which is how
   the end-to-end suite points them at its mock.

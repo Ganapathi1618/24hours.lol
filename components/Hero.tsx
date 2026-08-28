@@ -3,8 +3,8 @@
 import { BrandMark } from './BrandMark';
 import { CircularClock } from './CircularClock';
 import { ErrorBoundary } from './ErrorBoundary';
+import { LiveStatsBar } from './LiveStatsBar';
 import { Nav } from './Nav';
-import { StatsBar } from './StatsBar';
 import { formatHourRange, formatMoney } from '@/lib/hours';
 import type { HourSlot } from '@/lib/types';
 
@@ -24,6 +24,10 @@ export function Hero({ now, currentHour, slot, onBid }: Props) {
       id="top"
       className="flex min-h-[100svh] flex-col bg-ink text-white sm:min-h-0"
     >
+      <ErrorBoundary fallback={null}>
+        <LiveStatsBar />
+      </ErrorBoundary>
+
       <Nav onBid={() => onBid(currentHour)} />
 
       <div className="flex w-full flex-1 flex-col items-center justify-center gap-8 px-5 py-8 sm:gap-10 sm:py-14">
@@ -77,10 +81,6 @@ export function Hero({ now, currentHour, slot, onBid }: Props) {
           </div>
         )}
       </div>
-
-      <ErrorBoundary fallback={null}>
-        <StatsBar />
-      </ErrorBoundary>
     </section>
   );
 }

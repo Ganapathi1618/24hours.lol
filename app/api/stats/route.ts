@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 
 import { fetchDatafastStats } from '@/lib/datafast';
+import { env } from '@/lib/env';
 
 export const runtime = 'nodejs';
 export const revalidate = 30;
@@ -11,7 +12,7 @@ export async function GET(): Promise<NextResponse> {
     if (!stats) {
       return NextResponse.json({ error: 'Live stats are unavailable.' }, { status: 503 });
     }
-    return NextResponse.json(stats, {
+    return NextResponse.json({ ...stats, shareUrl: env.datafastShareUrl ?? null }, {
       headers: { 'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60' },
     });
   } catch (error) {

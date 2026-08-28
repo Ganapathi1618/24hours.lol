@@ -11,9 +11,9 @@ interface Props {
   currentHour: number;
 }
 
-const SIZE = 280;
+const SIZE = 300;
 const CENTER = SIZE / 2;
-const RADIUS = 126;
+const RADIUS = 136;
 
 /**
  * The live clock: a ring with a sweeping second hand and the digital UTC time
@@ -91,9 +91,9 @@ export function CircularClock({ now, currentHour }: Props) {
         <g transform={`rotate(${seconds * 6} ${CENTER} ${CENTER})`}>
           <line
             x1={CENTER}
-            y1={CENTER - RADIUS + 62}
+            y1={CENTER - RADIUS + 36}
             x2={CENTER}
-            y2={CENTER - RADIUS + 14}
+            y2={CENTER - RADIUS + 10}
             stroke="#dc2626"
             strokeWidth="2"
             strokeLinecap="round"
@@ -103,7 +103,7 @@ export function CircularClock({ now, currentHour }: Props) {
 
       <div className="relative z-10 text-center">
         <time
-          className="tabular block font-mono text-4xl font-bold leading-none tracking-tight text-white sm:text-5xl"
+          className="tabular block font-mono text-4xl font-bold leading-none tracking-tight text-white"
           dateTime={now.toISOString()}
           suppressHydrationWarning
         >

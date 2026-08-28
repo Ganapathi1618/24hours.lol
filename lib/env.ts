@@ -23,6 +23,7 @@ export const env = {
   dodoBidProductId: optional('DODO_BID_PRODUCT_ID'),
   datafastWebsiteId: publicEnv.datafastWebsiteId,
   datafastApiKey: optional('DATAFAST_API_KEY'),
+  datafastShareUrl: optional('NEXT_PUBLIC_DATAFAST_SHARE_URL'),
   siteUrl: publicEnv.siteUrl,
   resendApiKey: optional('RESEND_API_KEY'),
   resendFrom: optional('RESEND_FROM') ?? '24hrs.lol <bids@24hrs.lol>',

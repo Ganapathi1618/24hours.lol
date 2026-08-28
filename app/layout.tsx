@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { Inter, JetBrains_Mono } from 'next/font/google';
+import Script from 'next/script';
 
 import './globals.css';
 import { publicEnv } from '@/lib/public-env';
@@ -44,20 +45,44 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+/** Bare hostname of the deployed site, e.g. "24hrs.lol". */
+function resolveTrackingDomain(): string {
+  try {
+    return new URL(publicEnv.siteUrl).hostname;
+  } catch {
+    return '24hrs.lol';
+  }
+}
+
+const trackingDomain = resolveTrackingDomain();
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
-      <head>
-        <script
-          defer
-          data-website-id="dfid_jhlWORpexNZ5I45JtmIZa"
-          data-domain="24hrs.lol"
-          src="https://datafa.st/js/script.js"
-        />
-      </head>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+
+        {/*
+          Website id and domain both come from the environment, so page views are
+          recorded into the same Datafast project the API reads its numbers from.
+          A hardcoded id here would silently track this site into another project.
+
+          next/script injects this on the client rather than rendering it into the
+          server HTML. NEXT_PUBLIC_* values are inlined at build time, so a plain
+          conditional <script> would mismatch on hydration if the variable were
+          added in the host without a redeploy.
+        */}
+        {publicEnv.datafastWebsiteId && (
+          <Script
+            strategy="afterInteractive"
+            src="https://datafa.st/js/script.js"
+            data-website-id={publicEnv.datafastWebsiteId}
+            data-domain={trackingDomain}
+          />
+        )}
+      </body>
     </html>
   );
 }

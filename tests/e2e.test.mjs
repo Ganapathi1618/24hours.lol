@@ -297,6 +297,8 @@ async function main() {
     assert.equal(data.live, 12);
     assert.equal(data.visitors, 48210);
     assert.equal(data.pageviews, 91500);
+    // Resolved server-side so the client never branches on a build-time value.
+    assert.ok('shareUrl' in data, 'stats carry the dashboard link');
   });
 
   console.log('\n— Analytics —');
