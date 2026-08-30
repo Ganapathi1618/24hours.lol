@@ -63,38 +63,37 @@ export function Nav({ onBid }: Props) {
   }, []);
 
   return (
-    <nav className="flex w-full items-center justify-between gap-3 px-5 py-4 sm:px-8">
-      <a href="#top" className="flex items-center gap-2">
+    <nav className="flex w-full items-center justify-between gap-2 px-4 py-3 sm:gap-3 sm:px-8 sm:py-4">
+      <a href="#top" className="flex shrink-0 items-center gap-2">
         <Logo />
-        <span className="font-mono text-sm font-bold tracking-tight text-white">
+        <span className="hidden font-mono text-sm font-bold tracking-tight text-white sm:inline">
           24HRS<span className="text-white/40">.LOL</span>
         </span>
       </a>
 
       {stats && (
-        <div className="flex items-center rounded-full border border-white/15 bg-white/[0.08] px-2 py-1 shadow-[0_0_0_1px_rgba(255,255,255,0.04)] backdrop-blur-md sm:px-3 sm:py-1.5">
-          <span className="inline-flex items-center gap-1.5 pr-2 sm:pr-3">
-            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-400" />
-            <span className="font-mono text-[11px] font-semibold text-white">{stats.live}</span>
-            <span className="hidden text-[10px] uppercase tracking-wider text-white/50 sm:inline">
-              live
+        <div className="flex min-w-0 items-center rounded-full border border-white/15 bg-white/[0.08] px-2 py-1 backdrop-blur-md sm:px-3 sm:py-1.5">
+          <span className="inline-flex items-center gap-1 pr-1.5 sm:gap-1.5 sm:pr-3">
+            <span className="h-1.5 w-1.5 shrink-0 animate-pulse rounded-full bg-emerald-400" />
+            <span className="font-mono text-[10px] font-semibold text-white sm:text-[11px]">
+              {stats.live}
             </span>
           </span>
-          <span className="hidden h-3 w-px bg-white/20 sm:block" />
-          <span className="hidden items-center gap-3 pl-3 font-mono text-[11px] text-white sm:flex">
-            <span>
+          <span className="h-3 w-px shrink-0 bg-white/20" />
+          <span className="flex items-center gap-1.5 pl-1.5 font-mono text-[10px] text-white sm:gap-3 sm:pl-3 sm:text-[11px]">
+            <span className="whitespace-nowrap">
               <span className="font-semibold">{stats.visitors}</span>
-              <span className="ml-1 text-white/45">visitors</span>
+              <span className="ml-0.5 text-white/45">vis</span>
             </span>
-            <span>
+            <span className="whitespace-nowrap">
               <span className="font-semibold">{stats.pageviews}</span>
-              <span className="ml-1 text-white/45">views</span>
+              <span className="ml-0.5 text-white/45">views</span>
             </span>
           </span>
         </div>
       )}
 
-      <div className="flex items-center gap-4 sm:gap-5">
+      <div className="flex shrink-0 items-center gap-4 sm:gap-5">
         <a href="#board" className="hidden text-sm text-white/60 hover:text-white sm:block">
           All hours
         </a>
@@ -104,7 +103,7 @@ export function Nav({ onBid }: Props) {
         <button
           type="button"
           onClick={onBid}
-          className="rounded bg-accent px-4 py-2 text-sm font-medium text-white hover:opacity-90"
+          className="rounded bg-accent px-3 py-2 text-sm font-medium text-white hover:opacity-90 sm:px-4"
         >
           Bid Now
         </button>
