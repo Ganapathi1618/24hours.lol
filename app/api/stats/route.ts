@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-export const revalidate = 30;
+export const revalidate = 0;
 
 export async function GET() {
   // The tracking script in app/layout.tsx reads NEXT_PUBLIC_DATAFAST_WEBSITE_ID,
@@ -34,7 +34,7 @@ export async function GET() {
     ),
     fetch(
       `https://datafa.st/api/v1/analytics/overview?startAt=${startAt}&endAt=${endAt}&websiteId=${websiteId}`,
-      { headers, next: { revalidate: 30 } }
+      { headers, cache: "no-store" }
     ),
   ]);
 
