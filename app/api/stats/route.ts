@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server";
 
+export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export async function GET() {
-  // The tracking script in app/layout.tsx reads NEXT_PUBLIC_DATAFAST_WEBSITE_ID,
-  // so accept either name — otherwise whichever one is set in the host decides
-  // whether tracking or stats works, and the other silently breaks.
   const websiteId =
     process.env.DATAFAST_WEBSITE_ID ?? process.env.NEXT_PUBLIC_DATAFAST_WEBSITE_ID;
   const apiKey = process.env.DATAFAST_API_KEY;
@@ -18,30 +16,32 @@ export async function GET() {
     console.error("[api/stats] not configured, missing:", missing.join(", "));
     return NextResponse.json(
       { ok: false, error: "stats_not_configured", missing },
-      { status: 503 }
+      { status: 503 },
     );
   }
 
   const headers = { Authorization: `Bearer ${apiKey}` };
 
-  const startAt = "2026-07-29";
   const endAt = new Date().toISOString().slice(0, 10);
+  const start = new Date();
+  start.setUTCDate(start.getUTCDate() - 7);
+  const startAt = start.toISOString().slice(0, 10);
 
   const [realtimeRes, overviewRes] = await Promise.all([
     fetch(
       `https://datafa.st/api/v1/analytics/realtime?websiteId=${websiteId}`,
-      { headers, cache: "no-store" }
+      { headers, cache: "no-store" },
     ),
     fetch(
       `https://datafa.st/api/v1/analytics/overview?startAt=${startAt}&endAt=${endAt}&websiteId=${websiteId}`,
-      { headers, cache: "no-store" }
+      { headers, cache: "no-store" },
     ),
   ]);
 
   if (!realtimeRes.ok || !overviewRes.ok) {
     return NextResponse.json(
       { ok: false, error: "stats_upstream_failed" },
-      { status: 502 }
+      { status: 502 },
     );
   }
 
@@ -58,5 +58,6 @@ export async function GET() {
     pageviews: Number(o.pageviews ?? 0),
     sessions: Number(o.sessions ?? 0),
     bounceRate: Number(o.bounce_rate ?? 0),
+    range: { startAt, endAt },
   });
 }
