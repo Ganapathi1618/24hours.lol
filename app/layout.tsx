@@ -82,6 +82,17 @@ export default function RootLayout({
             data-domain={trackingDomain}
           />
         )}
+
+        {/*
+          TinyAdz. Loaded through next/script for the same reason as above; the
+          site id is a public identifier, so it is inline rather than an env var.
+        */}
+        <Script
+          strategy="afterInteractive"
+          src="https://cdn.apitiny.net/scripts/v2.0/main.js"
+          data-site-id="6a948fe1851f91b5406b824a"
+          data-test-mode="false"
+        />
       </body>
     </html>
   );
